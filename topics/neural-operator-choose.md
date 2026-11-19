@@ -3,6 +3,7 @@ title: 神经算子三选一：FNO、DeepONet、Transolver 到底选哪个
 slug: neural-operator-choose
 date: 2026-11-19
 tags: [AI4CAE, 神经算子, 选型]
+desc: 在 FNO、DeepONet、Transolver 之间，给出一个带条件、可被反驳的选型判断。
 level: 入门到能判断
 hours: 20
 ---

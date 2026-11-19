@@ -195,6 +195,19 @@ def add_anchors(html_body: str) -> tuple[str, list[tuple[str, str]]]:
     return re.sub(r"<h2>(.*?)</h2>", repl, html_body, flags=re.S), toc
 
 
+def _first_paragraph(md: str) -> str:
+    """取正文第一段纯文本作摘要（跳过标题行）。"""
+    for line in md.splitlines():
+        t = line.strip()
+        if not t or t.startswith("#") or t.startswith("---"):
+            continue
+        t = re.sub(r"^>\s*", "", t)
+        t = re.sub(r"[*`\[\]]", "", t)
+        t = re.sub(r"\(https?://[^)]+\)", "", t)
+        if t:
+            return " ".join(t.split())[:110]
+    return ""
+
 def build_topic(path: Path) -> dict:
     raw = path.read_text(encoding="utf-8")
     meta, body_md = split_frontmatter(raw)
@@ -232,7 +245,7 @@ def build_topic(path: Path) -> dict:
     if m:
         body = body[: m.end()] + tag_html + toc_html + body[m.end():]
 
-    desc = re.sub(r"<[^>]+>", "", body)[:120].replace("\n", " ")
+    desc = meta.get("desc") or _first_paragraph(body_md)
 
     out_dir = ROOT / slug
     out_dir.mkdir(parents=True, exist_ok=True)
