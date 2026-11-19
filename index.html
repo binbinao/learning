@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Learning Notes</title>
+<style>
+:root{
+  --paper:#fcfbf8; --ink:#191919; --muted:#77746d; --rule:#e4e0d8;
+  --accent:#9c3222; --wash:#f7f2ec;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.8;
+  font-feature-settings:"palt" 1;
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 26px}
+header.top{border-bottom:1px solid var(--rule)}
+header.top .wrap{display:flex;align-items:baseline;justify-content:space-between;padding:20px 26px}
+header.top a{color:var(--ink);text-decoration:none;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+header.top .meta{color:var(--muted);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase}
+main{padding:42px 0 84px}
+
+.kicker{font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:14px}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.3}
+h1{font-size:clamp(1.62rem,3.4vw,2.18rem);margin:0 0 .5em;letter-spacing:-.012em;text-wrap:balance;max-width:19em}
+h2{font-size:1.36rem;margin:3.1em 0 .75em;letter-spacing:-.005em;text-wrap:balance}
+h2::before{content:"";display:block;width:26px;height:2px;background:var(--accent);margin-bottom:.62em}
+h3{font-size:1.04rem;margin:2em 0 .45em;font-family:var(--sans);font-weight:650;letter-spacing:.01em}
+p{margin:0 0 1.1em}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(156,50,34,.25)}
+a:hover{border-bottom-color:var(--accent)}
+ul,ol{padding-left:1.3em;margin:0 0 1.2em}
+li{margin:.3em 0}
+strong{font-weight:650}
+blockquote{
+  margin:2em 0;padding:0 0 0 22px;border-left:2px solid var(--accent);
+  font-family:var(--serif);font-size:1.02rem;color:#3d3630;line-height:1.75
+}
+blockquote p:last-child{margin-bottom:0}
+
+table{border-collapse:collapse;width:100%;margin:1.6em 0 .6em;font-size:.88rem;line-height:1.6}
+th{text-align:left;font-weight:650;font-size:.78rem;letter-spacing:.06em;color:var(--muted);
+   border-bottom:1.5px solid var(--ink);padding:.55em .62em;white-space:nowrap}
+td{border-bottom:1px solid var(--rule);padding:.62em .62em;vertical-align:top}
+td:first-child{font-weight:550}
+code{background:var(--wash);padding:.1em .35em;border-radius:2px;font-size:.85em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--wash);padding:1.05em 1.15em;overflow-x:auto;font-size:.82rem;line-height:1.65;
+  border-left:2px solid var(--rule)}
+pre code{background:none;padding:0}
+hr{border:none;border-top:1px solid var(--rule);margin:3em 0}
+
+details{margin:1.2em 0;border-left:2px solid var(--rule);padding:.2em 0 .2em 18px}
+summary{cursor:pointer;font-size:.86rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+summary::marker{color:var(--accent)}
+details p{margin-top:.9em}
+
+.meta-row{display:flex;flex-wrap:wrap;gap:16px;margin:20px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.08em}
+.meta-row span{padding:0}
+.meta-row span:first-child{color:var(--ink)}
+
+.toc{margin:34px 0 0;padding:0}
+.toc>b{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
+.toc ol{list-style:none;padding:0;margin:0;column-count:2;column-gap:38px}
+.toc li{margin:0;break-inside:avoid}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:4px 0;color:var(--ink);border-bottom:none;font-size:.88rem}
+.toc a:hover{color:var(--accent)}
+.toc .n{color:var(--accent);font-size:.72rem;font-variant-numeric:tabular-nums;letter-spacing:.1em;min-width:17px}
+
+.card{display:block;padding:30px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;border-left:none}
+.card:hover h3{color:var(--accent)}
+.card .k{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.card h3{margin:0 0 .4em;font-size:1.22rem;font-family:var(--serif);font-weight:600;transition:color .15s}
+.card p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.65}
+.card .tags{margin-top:.7em;font-size:11px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase}
+
+footer{border-top:1px solid var(--rule);padding:28px 0 64px;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.index-lede{font-family:var(--serif);font-size:1.14rem;line-height:1.7;color:#4a453e;margin:0 0 44px;max-width:34em}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 20px}
+  header.top .wrap{padding:16px 20px}
+  main{padding:38px 0 70px}
+  .toc ol{column-count:1}
+  table{font-size:.8rem}
+  th,td{padding:.5em .38em}
+  th{white-space:normal}
+}
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  header.top,.toc,footer{display:none}
+  h2{page-break-after:avoid}
+  table,details{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a href="/learning/">Learning Notes</a>
+  <span class="meta">1 份材料</span>
+</div></header>
+<main><div class="wrap">
+<h1>Learning Notes</h1>
+<p class="index-lede">学一门手艺，不是读完一本书。<br>每份材料都按同一套结构：学习台阶 → 时间预算 → 三份资源 → 概念地图 → 自测 → 速查 → 费曼复述。</p>
+<a class="card" href="/learning/neural-operator-choose/"><div class="k">2026-11-19 · 20h</div><h3>神经算子三选一：FNO、DeepONet、Transolver 到底选哪个</h3><p>Learning Note · 学习材料神经算子三选一：FNO、DeepONet、Transolver 到底选哪个AI4CAE神经算子选型20 小时入门到能判断Contents01一、Learning Ladder：四级台阶02二、20 H</p><div class="tags">AI4CAE, 神经算子, 选型</div></a>
+</div></main>
+<footer><div class="wrap">持续更新 · 最后构建 2026-11-19</div></footer>
+</body>
+</html>

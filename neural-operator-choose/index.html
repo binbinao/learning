@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>神经算子三选一：FNO、DeepONet、Transolver 到底选哪个 · Learning Notes</title>
+<meta name="description" content="Learning Note · 学习材料神经算子三选一：FNO、DeepONet、Transolver 到底选哪个AI4CAE神经算子选型20 小时入门到能判断Contents01一、Learning Ladder：四级台阶02二、20 H">
+<style>
+:root{
+  --paper:#fcfbf8; --ink:#191919; --muted:#77746d; --rule:#e4e0d8;
+  --accent:#9c3222; --wash:#f7f2ec;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.8;
+  font-feature-settings:"palt" 1;
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 26px}
+header.top{border-bottom:1px solid var(--rule)}
+header.top .wrap{display:flex;align-items:baseline;justify-content:space-between;padding:20px 26px}
+header.top a{color:var(--ink);text-decoration:none;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+header.top .meta{color:var(--muted);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase}
+main{padding:42px 0 84px}
+
+.kicker{font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:14px}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.3}
+h1{font-size:clamp(1.62rem,3.4vw,2.18rem);margin:0 0 .5em;letter-spacing:-.012em;text-wrap:balance;max-width:19em}
+h2{font-size:1.36rem;margin:3.1em 0 .75em;letter-spacing:-.005em;text-wrap:balance}
+h2::before{content:"";display:block;width:26px;height:2px;background:var(--accent);margin-bottom:.62em}
+h3{font-size:1.04rem;margin:2em 0 .45em;font-family:var(--sans);font-weight:650;letter-spacing:.01em}
+p{margin:0 0 1.1em}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(156,50,34,.25)}
+a:hover{border-bottom-color:var(--accent)}
+ul,ol{padding-left:1.3em;margin:0 0 1.2em}
+li{margin:.3em 0}
+strong{font-weight:650}
+blockquote{
+  margin:2em 0;padding:0 0 0 22px;border-left:2px solid var(--accent);
+  font-family:var(--serif);font-size:1.02rem;color:#3d3630;line-height:1.75
+}
+blockquote p:last-child{margin-bottom:0}
+
+table{border-collapse:collapse;width:100%;margin:1.6em 0 .6em;font-size:.88rem;line-height:1.6}
+th{text-align:left;font-weight:650;font-size:.78rem;letter-spacing:.06em;color:var(--muted);
+   border-bottom:1.5px solid var(--ink);padding:.55em .62em;white-space:nowrap}
+td{border-bottom:1px solid var(--rule);padding:.62em .62em;vertical-align:top}
+td:first-child{font-weight:550}
+code{background:var(--wash);padding:.1em .35em;border-radius:2px;font-size:.85em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--wash);padding:1.05em 1.15em;overflow-x:auto;font-size:.82rem;line-height:1.65;
+  border-left:2px solid var(--rule)}
+pre code{background:none;padding:0}
+hr{border:none;border-top:1px solid var(--rule);margin:3em 0}
+
+details{margin:1.2em 0;border-left:2px solid var(--rule);padding:.2em 0 .2em 18px}
+summary{cursor:pointer;font-size:.86rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+summary::marker{color:var(--accent)}
+details p{margin-top:.9em}
+
+.meta-row{display:flex;flex-wrap:wrap;gap:16px;margin:20px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.08em}
+.meta-row span{padding:0}
+.meta-row span:first-child{color:var(--ink)}
+
+.toc{margin:34px 0 0;padding:0}
+.toc>b{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
+.toc ol{list-style:none;padding:0;margin:0;column-count:2;column-gap:38px}
+.toc li{margin:0;break-inside:avoid}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:4px 0;color:var(--ink);border-bottom:none;font-size:.88rem}
+.toc a:hover{color:var(--accent)}
+.toc .n{color:var(--accent);font-size:.72rem;font-variant-numeric:tabular-nums;letter-spacing:.1em;min-width:17px}
+
+.card{display:block;padding:30px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;border-left:none}
+.card:hover h3{color:var(--accent)}
+.card .k{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.card h3{margin:0 0 .4em;font-size:1.22rem;font-family:var(--serif);font-weight:600;transition:color .15s}
+.card p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.65}
+.card .tags{margin-top:.7em;font-size:11px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase}
+
+footer{border-top:1px solid var(--rule);padding:28px 0 64px;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.index-lede{font-family:var(--serif);font-size:1.14rem;line-height:1.7;color:#4a453e;margin:0 0 44px;max-width:34em}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 20px}
+  header.top .wrap{padding:16px 20px}
+  main{padding:38px 0 70px}
+  .toc ol{column-count:1}
+  table{font-size:.8rem}
+  th,td{padding:.5em .38em}
+  th{white-space:normal}
+}
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  header.top,.toc,footer{display:none}
+  h2{page-break-after:avoid}
+  table,details{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a href="/learning/">Learning Notes</a>
+  <span class="meta">2026-11-19</span>
+</div></header>
+<main><div class="wrap">
+<div class="kicker">Learning Note · 学习材料</div><h1>神经算子三选一：FNO、DeepONet、Transolver 到底选哪个</h1><div class="meta-row"><span>AI4CAE</span><span>神经算子</span><span>选型</span><span>20 小时</span><span>入门到能判断</span></div><nav class="toc"><b>Contents</b><ol><li><a href="#一-learning-ladder-四级台阶"><span class="n">01</span>一、Learning Ladder：四级台阶</a></li><li><a href="#二-20-hour-plan-怎么分这-20-小时"><span class="n">02</span>二、20 Hour Plan：怎么分这 20 小时</a></li><li><a href="#三-best-resources-只用三份"><span class="n">03</span>三、Best Resources：只用三份</a></li><li><a href="#四-learning-map-三者的假设差异"><span class="n">04</span>四、Learning Map：三者的假设差异</a></li><li><a href="#五-quiz-engine-10-题自测"><span class="n">05</span>五、Quiz Engine：10 题自测</a></li><li><a href="#六-cheat-sheet-一页速查"><span class="n">06</span>六、Cheat Sheet：一页速查</a></li><li><a href="#七-feynman-loop-讲给完全不懂的人听"><span class="n">07</span>七、Feynman Loop：讲给完全不懂的人听</a></li><li><a href="#八-repeat-什么时候该回来重学"><span class="n">08</span>八、Repeat：什么时候该回来重学</a></li><li><a href="#九-这份材料的边界"><span class="n">09</span>九、这份材料的边界</a></li></ol></nav>
+<blockquote>
+<p>这份材料的唯一目标：<strong>让你在 20 小时内，能对"我们该用哪个神经算子"给出一个可被反驳的答案。</strong>
+不是学会训练模型，是学会在三个选项之间做判断。</p>
+</blockquote>
+<hr />
+<h2 id="一-learning-ladder-四级台阶">一、Learning Ladder：四级台阶</h2>
+<p>学习任何技术，最难的不是"看不懂"，是<strong>不知道自己停在哪一级却以为在上一级</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>级</th>
+<th>状态</th>
+<th>检验方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 能说清</strong></td>
+<td>能说出三者各自的核心假设</td>
+<td>不看资料，三句话讲完</td>
+</tr>
+<tr>
+<td><strong>L2 能选</strong></td>
+<td>给定场景能选出候选并说明理由</td>
+<td>五个场景，选对四个</td>
+</tr>
+<tr>
+<td><strong>L3 能跑</strong></td>
+<td>能在同一道题上跑通两个并比较</td>
+<td>有同一测试集上的误差数字</td>
+</tr>
+<tr>
+<td><strong>L4 能判断</strong></td>
+<td>能说出"这个模型什么时候不可信"</td>
+<td>三条失效条件，各有实验支撑</td>
+</tr>
+</tbody>
+</table>
+<p><strong>多数人停在 L1 却以为在 L3</strong>，因为跑通了 demo 就以为懂了。<strong>跑通只证明环境配置对了。</strong></p>
+<hr />
+<h2 id="二-20-hour-plan-怎么分这-20-小时">二、20 Hour Plan：怎么分这 20 小时</h2>
+<table>
+<thead>
+<tr>
+<th>块</th>
+<th>时长</th>
+<th>干什么</th>
+<th>产出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A 概念</strong></td>
+<td>4h</td>
+<td>三者的数学假设（不是推导，是假设）</td>
+<td>一页对比表</td>
+</tr>
+<tr>
+<td><strong>B 动手</strong></td>
+<td>6h</td>
+<td>同一道 Darcy 题，跑 FNO 和 DeepONet</td>
+<td>两组误差数字</td>
+</tr>
+<tr>
+<td><strong>C 对比</strong></td>
+<td>4h</td>
+<td>换分辨率、换边界条件、换数据量</td>
+<td>三张曲线</td>
+</tr>
+<tr>
+<td><strong>D 失败</strong></td>
+<td>4h</td>
+<td>故意把它跑崩，记录崩法</td>
+<td>三条失效条件</td>
+</tr>
+<tr>
+<td><strong>E 复盘</strong></td>
+<td>2h</td>
+<td>费曼复述 + 自测</td>
+<td>一段录音 + 一份答案</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A 和 B 可以并行：先跑通再回头理解假设，比先读公式快一倍。</strong></p>
+<hr />
+<h2 id="三-best-resources-只用三份">三、Best Resources：只用三份</h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>用什么</th>
+<th>为什么是它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>综述</strong></td>
+<td>《Neural Operator: Is data all you need to model the world?》(arXiv:2301.13331)</td>
+<td>把"算子学习 vs 数据驱动"这条主线讲清楚了，不是罗列模型</td>
+</tr>
+<tr>
+<td><strong>官方教程</strong></td>
+<td>PhysicsNeMo 的 <code>examples/cfd/darcy_fno</code> 与 <code>darcy_transolver</code></td>
+<td>同一道题、同一套数据管线，天然可比</td>
+</tr>
+<tr>
+<td><strong>基准</strong></td>
+<td>PhysicsBench / AIPhysics.org</td>
+<td>看别人怎么定义"公平比较"，比看结论有用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不要读第四份。</strong> 读四份的结果是四份都没读完。</p>
+<hr />
+<h2 id="四-learning-map-三者的假设差异">四、Learning Map：三者的假设差异</h2>
+<p><strong>核心判断轴只有一个：它们假设"解算子"的什么结构？</strong></p>
+<pre><code>         解算子 G: a(x) ──→ u(x)
+                  │
+    ┌─────────────┼─────────────┐
+    │             │             │
+ 假设频域稀疏   假设可分解      假设可切片
+    │             │             │
+   FNO         DeepONet      Transolver
+ （傅里叶基）  （分支×主干）  （物理注意力）
+</code></pre>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>FNO</th>
+<th>DeepONet</th>
+<th>Transolver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心假设</strong></td>
+<td>解在频域稀疏，截断高频不损失</td>
+<td>算子可分解为"输入分支 × 输出主干"</td>
+<td>物理场可由少量"切片"表征</td>
+</tr>
+<tr>
+<td><strong>输入形态</strong></td>
+<td>规则网格、周期边界最舒服</td>
+<td>任意点集（分支/主干可不同）</td>
+<td>非结构网格、复杂几何</td>
+</tr>
+<tr>
+<td><strong>数据需求</strong></td>
+<td>中等，需要成对 (a, u)</td>
+<td><strong>高</strong>，配对质量决定上限</td>
+<td>中等，几何多样性要求高</td>
+</tr>
+<tr>
+<td><strong>外推能力</strong></td>
+<td>弱（超分辨率可以，超参数不行）</td>
+<td>弱</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>典型崩法</strong></td>
+<td>非周期边界、非均匀网格</td>
+<td>数据少时退化成均值预测</td>
+<td>极小几何/大长宽比时注意力退化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>记这一句就够了：FNO 赌频域，DeepONet 赌分解，Transolver 赌切片。</strong></p>
+<hr />
+<h2 id="五-quiz-engine-10-题自测">五、Quiz Engine：10 题自测</h2>
+<p><strong>规则：先答，再看答案。答错不算失败，跳过算。</strong></p>
+<ol>
+<li>你的几何每 10 个样本变一次，网格是三角形非结构。第一候选是？</li>
+<li>你要做超分辨率（训练 64×64，推理 256×256），哪个方法天然支持？</li>
+<li>你只有 50 组仿真数据。DeepONet 合适吗？</li>
+<li>FNO 在周期边界上表现很好，换到固壁无滑移边界会怎样？</li>
+<li>客户问"你这模型能不能代替 CFD"，你的第一句话应该是什么？</li>
+<li>Transolver 的"切片"如果数量设得太少，会发生什么？</li>
+<li>三个方法里，哪个对"配对数据质量"最敏感？</li>
+<li>你要做参数扫描（几何固定，只变雷诺数），最优选是？</li>
+<li>训练集误差 1%，测试集（参数区间外）误差 18%。这说明什么？</li>
+<li>如果只能给老板一句话解释三者区别，你说什么？</li>
+</ol>
+<details>
+<summary>答案与解析</summary>
+
+**1. Transolver 或 GNN 类。** 几何频繁变化 + 非结构网格，FNO 的频域假设直接失效。
+**2. FNO。** 频域表示与分辨率解耦，天然支持超分辨率——但仅限"同一 PDE、同一参数区间"。
+**3. 不合适。** DeepONet 需要大量高质量配对；50 组更适合 PINN 或降阶方法。
+**4. 会明显掉点。** 傅里叶基隐含周期性，固壁边界需要额外处理（边界嵌入/惩罚项），否则边界附近误差爆炸。
+**5. "不能，它只能在训练分布内做快速近似。"** 先划边界，再谈精度。
+**6. 表达能力不足，长程依赖丢失。** 切片数相当于隐式的分辨率预算。
+**7. DeepONet。** 分支-主干分解对配对噪声放大最明显。
+**8. FNO 或 Transolver。** 几何不变、参数变，正是算子学习的主场。
+**9. 典型的分布外失效。** 不是模型不行，是你说"误差 1%"时没说是哪个分布。
+**10. "一个赌频率、一个赌分解、一个赌切片；都在赌，赌错了就是 18% 而不是 1%。"**
+
+</details>
+
+<hr />
+<h2 id="六-cheat-sheet-一页速查">六、Cheat Sheet：一页速查</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>首选</th>
+<th>备选</th>
+<th>明确别用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>几何固定、参数扫描、规则网格</td>
+<td>FNO</td>
+<td>Transolver</td>
+<td>DeepONet（数据贵）</td>
+</tr>
+<tr>
+<td>几何常变、非结构网格</td>
+<td>Transolver / GNN</td>
+<td>—</td>
+<td>FNO（频域假设失效）</td>
+</tr>
+<tr>
+<td>只有算子对、点集不规整</td>
+<td>DeepONet</td>
+<td>—</td>
+<td>FNO</td>
+</tr>
+<tr>
+<td>数据极少（&lt;100）</td>
+<td>PINN</td>
+<td>降阶</td>
+<td>DeepONet</td>
+</tr>
+<tr>
+<td>要超分辨率</td>
+<td>FNO</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>要严格满足守恒律</td>
+<td>PINN（带约束）</td>
+<td>—</td>
+<td>纯数据驱动</td>
+</tr>
+</tbody>
+</table>
+<p><strong>三条红线：</strong>
+1. 训练分布外不谈精度。
+2. 没有同一测试集的对比，不算对比。
+3. 说不出失效条件的模型，不能上线。</p>
+<hr />
+<h2 id="七-feynman-loop-讲给完全不懂的人听">七、Feynman Loop：讲给完全不懂的人听</h2>
+<p><strong>任务：用 90 秒、不用任何术语，讲清"为什么这三个方法会不一样"。</strong></p>
+<p>参考版本（自己讲完再看）：</p>
+<blockquote>
+<p>假设你要预测水流过不同形状的石头会怎么流。
+第一个办法是记住"水流的规律在'波浪'层面很简单"，所以我们只用少数几种波浪去拼——这就是 FNO，它赌的是"复杂的东西在某个视角下很简单"。
+第二个办法是记住"入口的条件决定出口的结果"，于是学一个从入口到出口的映射——这就是 DeepONet，它赌的是"因果关系可以拆成两半"。
+第三个办法是把形状切成很多小片，每片只看自己周围——这就是 Transolver，它赌的是"局部能代表整体"。
+<strong>三个都在赌一个"世界比看起来简单"的假设。赌对了是 1%，赌错了是 18%。</strong></p>
+</blockquote>
+<p><strong>卡点检测：</strong> 如果你讲到"赌"这个字卡住了，说明你还在 L1，回去重做第四节。</p>
+<hr />
+<h2 id="八-repeat-什么时候该回来重学">八、Repeat：什么时候该回来重学</h2>
+<table>
+<thead>
+<tr>
+<th>触发条件</th>
+<th>回来做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>你在真实项目上遇到了三个方法都失效的情况</td>
+<td>重做 D 块，把新崩法加进失效条件</td>
+</tr>
+<tr>
+<td>出现了新架构（如 2027 年的某篇）</td>
+<td>只做一个动作：把它塞进"核心假设"那一行</td>
+</tr>
+<tr>
+<td>你要向客户/老板做技术选型汇报</td>
+<td>重做 C 块，把曲线换成他们看得懂的三个数</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="九-这份材料的边界">九、这份材料的边界</h2>
+<ul>
+<li>文中架构对比基于公开文献与 PhysicsNeMo 26.08 的实现，<strong>未包含任何私有基准</strong></li>
+<li>"典型崩法"一栏来自公开报告的失效模式，<strong>你的数据上可能不同</strong></li>
+<li>20 小时是"能判断"的下限，不是"能发论文"的下限</li>
+</ul>
+<p><strong>判断标准：读完这份材料，你能不能对"该用哪个"给出一个带条件的答案。</strong>
+<strong>能，就去跑 B 块。不能，就说明还停在 L1。</strong></p>
+</div></main>
+<footer><div class="wrap">Learning Notes · 学一门手艺，不是读完一本书 · 材料由学习系统生成，请以原始文献为准</div></footer>
+</body>
+</html>
