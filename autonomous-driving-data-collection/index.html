@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>自动驾驶数据采集：采得多不是能力，筛得准才是 · Learning Notes</title>
+<meta name="description" content="用三个约束（能不能采、能不能用、值不值得采）判断一套采集系统哪里会先崩。">
+<style>
+:root{
+  --paper:#fcfbf8; --ink:#191919; --muted:#77746d; --rule:#e4e0d8;
+  --accent:#9c3222; --wash:#f7f2ec;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.8;
+  font-feature-settings:"palt" 1;
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 26px}
+header.top{border-bottom:1px solid var(--rule)}
+header.top .wrap{display:flex;align-items:baseline;justify-content:space-between;padding:20px 26px}
+header.top a{color:var(--ink);text-decoration:none;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+header.top .meta{color:var(--muted);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase}
+main{padding:42px 0 84px}
+
+.kicker{font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:14px}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.3}
+h1{font-size:clamp(1.62rem,3.4vw,2.18rem);margin:0 0 .5em;letter-spacing:-.012em;text-wrap:balance;max-width:19em}
+h2{font-size:1.36rem;margin:3.1em 0 .75em;letter-spacing:-.005em;text-wrap:balance}
+h2::before{content:"";display:block;width:26px;height:2px;background:var(--accent);margin-bottom:.62em}
+h3{font-size:1.04rem;margin:2em 0 .45em;font-family:var(--sans);font-weight:650;letter-spacing:.01em}
+p{margin:0 0 1.1em}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(156,50,34,.25)}
+a:hover{border-bottom-color:var(--accent)}
+ul,ol{padding-left:1.3em;margin:0 0 1.2em}
+li{margin:.3em 0}
+strong{font-weight:650}
+blockquote{
+  margin:2em 0;padding:0 0 0 22px;border-left:2px solid var(--accent);
+  font-family:var(--serif);font-size:1.02rem;color:#3d3630;line-height:1.75
+}
+blockquote p:last-child{margin-bottom:0}
+
+table{border-collapse:collapse;width:100%;margin:1.6em 0 .6em;font-size:.88rem;line-height:1.6}
+th{text-align:left;font-weight:650;font-size:.78rem;letter-spacing:.06em;color:var(--muted);
+   border-bottom:1.5px solid var(--ink);padding:.55em .62em;white-space:nowrap}
+td{border-bottom:1px solid var(--rule);padding:.62em .62em;vertical-align:top}
+td:first-child{font-weight:550}
+code{background:var(--wash);padding:.1em .35em;border-radius:2px;font-size:.85em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--wash);padding:1.05em 1.15em;overflow-x:auto;font-size:.82rem;line-height:1.65;
+  border-left:2px solid var(--rule)}
+pre code{background:none;padding:0}
+hr{border:none;border-top:1px solid var(--rule);margin:3em 0}
+
+details{margin:1.2em 0;border-left:2px solid var(--rule);padding:.2em 0 .2em 18px}
+summary{cursor:pointer;font-size:.86rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+summary::marker{color:var(--accent)}
+details p{margin-top:.9em}
+
+.meta-row{display:flex;flex-wrap:wrap;gap:16px;margin:20px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.08em}
+.meta-row span{padding:0}
+.meta-row span:first-child{color:var(--ink)}
+
+.toc{margin:34px 0 0;padding:0}
+.toc>b{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
+.toc ol{list-style:none;padding:0;margin:0;column-count:2;column-gap:38px}
+.toc li{margin:0;break-inside:avoid}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:4px 0;color:var(--ink);border-bottom:none;font-size:.88rem}
+.toc a:hover{color:var(--accent)}
+.toc .n{color:var(--accent);font-size:.72rem;font-variant-numeric:tabular-nums;letter-spacing:.1em;min-width:17px}
+
+.card{display:block;padding:30px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;border-left:none}
+.card:hover h3{color:var(--accent)}
+.card .k{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.card h3{margin:0 0 .4em;font-size:1.22rem;font-family:var(--serif);font-weight:600;transition:color .15s}
+.card p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.65}
+.card .tags{margin-top:.7em;font-size:11px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase}
+
+footer{border-top:1px solid var(--rule);padding:28px 0 64px;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.index-lede{font-family:var(--serif);font-size:1.14rem;line-height:1.7;color:#4a453e;margin:0 0 44px;max-width:34em}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 20px}
+  header.top .wrap{padding:16px 20px}
+  main{padding:38px 0 70px}
+  .toc ol{column-count:1}
+  table{font-size:.8rem}
+  th,td{padding:.5em .38em}
+  th{white-space:normal}
+}
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  header.top,.toc,footer{display:none}
+  h2{page-break-after:avoid}
+  table,details{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a href="/learning/">Learning Notes</a>
+  <span class="meta">2026-11-19</span>
+</div></header>
+<main><div class="wrap">
+<div class="kicker">Learning Note · 学习材料</div><h1>自动驾驶数据采集：采得多不是能力，筛得准才是</h1><div class="meta-row"><span>自动驾驶</span><span>数据采集</span><span>数据闭环</span><span>20 小时</span><span>入门到能判断</span></div><nav class="toc"><b>Contents</b><ol><li><a href="#一-learning-ladder-四级台阶"><span class="n">01</span>一、Learning Ladder：四级台阶</a></li><li><a href="#二-20-hour-plan-怎么分这-20-小时"><span class="n">02</span>二、20 Hour Plan：怎么分这 20 小时</a></li><li><a href="#三-best-resources-只用三份"><span class="n">03</span>三、Best Resources：只用三份</a></li><li><a href="#四-learning-map-一条链路-三个约束"><span class="n">04</span>四、Learning Map：一条链路，三个约束</a></li><li><a href="#五-五个环节的关键点"><span class="n">05</span>五、五个环节的关键点</a></li><li><a href="#六-quiz-engine-10-题自测"><span class="n">06</span>六、Quiz Engine：10 题自测</a></li><li><a href="#七-cheat-sheet-一页速查"><span class="n">07</span>七、Cheat Sheet：一页速查</a></li><li><a href="#八-feynman-loop-讲给不懂的人听"><span class="n">08</span>八、Feynman Loop：讲给不懂的人听</a></li><li><a href="#九-边界-这份材料什么时候不适用"><span class="n">09</span>九、边界：这份材料什么时候不适用</a></li></ol></nav>
+<blockquote>
+<p>这份材料的唯一目标是：<strong>给你一套采集系统的描述，你能在 10 分钟内指出它最可能先崩的那一环，并说出理由。</strong></p>
+</blockquote>
+<hr />
+<h2 id="一-learning-ladder-四级台阶">一、Learning Ladder：四级台阶</h2>
+<table>
+<thead>
+<tr>
+<th>级</th>
+<th>状态</th>
+<th>检验方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 能说清</strong></td>
+<td>说得出采集链路的五段，以及每段的产物</td>
+<td>不看资料画一遍链路图</td>
+</tr>
+<tr>
+<td><strong>L2 能选</strong></td>
+<td>给定场景（量产/采集车/路端），选得出传感器与回传策略</td>
+<td>三个场景，两个选对</td>
+</tr>
+<tr>
+<td><strong>L3 能算</strong></td>
+<td>算得出一辆车一天产生多少数据、要多少带宽、要多少存储</td>
+<td>手算出 TB/天 与 月存储成本量级</td>
+</tr>
+<tr>
+<td><strong>L4 能判断</strong></td>
+<td>指得出这套系统最可能先崩的环节，并给出验证方法</td>
+<td>三个真实案例，命中两个</td>
+</tr>
+</tbody>
+</table>
+<p><strong>多数人停在 L1</strong>：能背出"采集—传输—存储—标注—训练"，但说不出"哪一段会先崩、崩了怎么发现"。</p>
+<hr />
+<h2 id="二-20-hour-plan-怎么分这-20-小时">二、20 Hour Plan：怎么分这 20 小时</h2>
+<table>
+<thead>
+<tr>
+<th>块</th>
+<th>时长</th>
+<th>干什么</th>
+<th>产出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A 概念</strong></td>
+<td>4h</td>
+<td>五段链路 + 三个约束（合规/可用/值得）</td>
+<td>一页链路图，每段标"产物"与"失败模式"</td>
+</tr>
+<tr>
+<td><strong>B 动手</strong></td>
+<td>6h</td>
+<td>拿一个开源数据集（nuScenes / DAIR-V2X）看它的目录结构与元数据</td>
+<td>一张"别人怎么组织数据"的解剖表</td>
+</tr>
+<tr>
+<td><strong>C 算账</strong></td>
+<td>4h</td>
+<td>用一组假设算 TB/天、上行带宽、年存储成本</td>
+<td>一张能拿去开会的成本表</td>
+</tr>
+<tr>
+<td><strong>D 失败</strong></td>
+<td>4h</td>
+<td>收集三个真实翻车案例（同步、标定、合规各一）</td>
+<td>三条失效条件，每条带观测指标</td>
+</tr>
+<tr>
+<td><strong>E 复盘</strong></td>
+<td>2h</td>
+<td>费曼复述 + 自测</td>
+<td>90 秒录音 + 自测得分</td>
+</tr>
+</tbody>
+</table>
+<p><strong>C 块最容易被跳过，也最值钱。</strong> 采集方案能不能过，往往不是技术评审决定的，是"一年存储多少钱"决定的。</p>
+<hr />
+<h2 id="三-best-resources-只用三份">三、Best Resources：只用三份</h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>用什么</th>
+<th>为什么是它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>法规原文</strong></td>
+<td>《汽车数据安全管理若干规定（试行）》（五部门令第 7 号，2021-10-01 施行）</td>
+<td>中国境内采集的<strong>硬边界</strong>，四千字，两小时能读完。别读解读文章代替原文</td>
+</tr>
+<tr>
+<td><strong>数据集</strong></td>
+<td>nuScenes（或 DAIR-V2X）</td>
+<td>看真实的多传感器数据怎么组织：标定文件、时间戳、标注格式一次看全</td>
+</tr>
+<tr>
+<td><strong>工程综述</strong></td>
+<td>中国汽研《智能网联汽车自动驾驶系统测试场景数据采集和分析标准需求研究报告》</td>
+<td>讲的是"采集什么、怎么定义场景"，不是厂商软文</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不要读第四份。</strong> 采集这个领域，厂商方案文档比技术文献多十倍，读多了只会记住产品名。</p>
+<hr />
+<h2 id="四-learning-map-一条链路-三个约束">四、Learning Map：一条链路，三个约束</h2>
+<pre><code> 车端采集 ──→ 回传 ──→ 落湖存储 ──→ 标注/挖掘 ──→ 训练闭环
+   │            │           │             │            │
+ 传感器+同步   筛选+断点    元数据+分层   预标注+复核   影子模式回灌
+ 标定+时间戳   5G/专线     对象存储+湖仓  版本管理      OTA
+</code></pre>
+<p><strong>每个环节都被三个约束同时夹住，这就是判断的依据：</strong></p>
+<table>
+<thead>
+<tr>
+<th>约束</th>
+<th>问的问题</th>
+<th>不满足的后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>能不能采</strong></td>
+<td>这段路、这类数据，法律允许采吗</td>
+<td>采了不能用，还可能违法</td>
+</tr>
+<tr>
+<td><strong>能不能用</strong></td>
+<td>时间对得上吗、标定准吗、丢帧吗</td>
+<td>数据在，但训练时是噪声</td>
+</tr>
+<tr>
+<td><strong>值不值得采</strong></td>
+<td>单位存储/标注成本换来的信息量</td>
+<td>数据湖变成数据沼泽</td>
+</tr>
+</tbody>
+</table>
+<p><strong>判断口诀：合规定边界，同步定质量，成本定规模。</strong></p>
+<hr />
+<h2 id="五-五个环节的关键点">五、五个环节的关键点</h2>
+<h3>5.1 车端采集：传感器不是越多越好</h3>
+<table>
+<thead>
+<tr>
+<th>传感器</th>
+<th>采什么</th>
+<th>真实的坑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>相机</strong></td>
+<td>语义、纹理、交通标志</td>
+<td>曝光时刻与帧时间戳不是一回事；夜间与逆光动态范围不够</td>
+</tr>
+<tr>
+<td><strong>激光雷达</strong></td>
+<td>精确距离、三维结构</td>
+<td>半固态的扫描pattern非均匀；雨雾衰减；与相机外参漂移</td>
+</tr>
+<tr>
+<td><strong>毫米波雷达</strong></td>
+<td>速度、恶劣天气</td>
+<td>角分辨率低、金属反射虚警；4D 成像才勉强够用</td>
+</tr>
+<tr>
+<td><strong>GNSS-RTK + IMU</strong></td>
+<td>全局位姿、姿态</td>
+<td>隧道/城市峡谷丢星；IMU 零偏随温度漂移</td>
+</tr>
+<tr>
+<td><strong>轮速/底盘</strong></td>
+<td>里程、车速</td>
+<td>与视觉里程计尺度不一致时，融合会用错尺度</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"多传感器融合"的第一性问题不是算法，是时间和空间对不对得上。</strong> 对不上，融合只会把误差放大。</p>
+<h3>5.2 同步：毫秒级的事，决定数据能不能用</h3>
+<ul>
+<li><strong>硬件同步</strong>（PTP/gPTP 或触发线）优于软件打时间戳；软件同步在抖动大的域控上误差可达数十毫秒。</li>
+<li><strong>统一时基</strong>：所有传感器时间戳归一到同一 UTC 时基，否则跨天回放会错位。</li>
+<li><strong>可观测指标</strong>：同步残差（ms）、丢帧率（%）、跨传感器时间戳偏移分布。<strong>没有这三个指标，"同步做好了"只是感觉。</strong></li>
+</ul>
+<h3>5.3 标定：一次标定管不了一年</h3>
+<ul>
+<li><strong>内参</strong>（焦距、畸变）相对稳定；<strong>外参</strong>（雷达到相机、传感器到车体）会因振动、温度、轻微碰撞漂移。</li>
+<li><strong>在线标定</strong>是量产车的必需项，不是加分项：它把"标定"从一次性工装变成持续监控。</li>
+<li><strong>可观测指标</strong>：重投影误差（像素）、标定残差随时间漂移曲线、标定失效告警次数。</li>
+</ul>
+<h3>5.4 回传：真正的瓶颈在这里</h3>
+<p>一辆车全量回传是不现实的，行业通行做法是<strong>触发式上传</strong>：车端跑一个轻量模型或规则，只在"模型不确定/规则命中"时上传片段。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>触发条件</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>影子模式</strong></td>
+<td>影子模型输出与人类驾驶不一致</td>
+<td>需要车端算力，且只覆盖已定义的不一致</td>
+</tr>
+<tr>
+<td><strong>规则触发</strong></td>
+<td>急刹、接管、AEB 触发、近距离切入</td>
+<td>抓得到已知风险，抓不到"不知道自己不知道"</td>
+</tr>
+<tr>
+<td><strong>随机采样</strong></td>
+<td>按里程/时间抽样</td>
+<td>保底分布，但价值密度低</td>
+</tr>
+<tr>
+<td><strong>全量回传</strong></td>
+<td>采集车阶段常用</td>
+<td>带宽与存储成本最高</td>
+</tr>
+</tbody>
+</table>
+<p><strong>判断点：触发策略决定了你的数据分布。</strong> 只用规则触发，训出来的模型只擅长"你已知的坑"。</p>
+<h3>5.5 落湖：元数据比数据本身重要</h3>
+<ul>
+<li><strong>原始包</strong>（rosbag/MCAP）原样存对象存储，<strong>永不改写</strong>——它是唯一的证据。</li>
+<li><strong>解包后结构化</strong>：帧级索引、传感器清单、标定版本、场景标签写进元数据表（Parquet / 湖仓表格式）。</li>
+<li><strong>三层组织</strong>：原始层（raw）→ 清洗层（clean）→ 特征/标注层（curated）。<strong>跨层不做覆盖写，只做追加 + 版本。</strong></li>
+<li><strong>可观测指标</strong>：单帧查询延迟、孤儿文件比例（有文件无元数据）、元数据与文件的一致性校验通过率。</li>
+</ul>
+<p><strong>数据湖最常见的死法不是存不下，是"找不到"和"不敢删"。</strong></p>
+<h3>5.6 合规：先看边界，再谈方案</h3>
+<p>按《汽车数据安全管理若干规定（试行）》，以下属于<strong>重要数据</strong>（原文列举，节选）：</p>
+<ul>
+<li>军事管理区、国防科工单位以及县级以上党政机关等重要敏感区域的地理信息、人员流量、车辆流量等数据；</li>
+<li>车辆流量、物流等反映经济运行情况的数据；</li>
+<li>汽车充电网的运行数据；</li>
+<li><strong>包含人脸信息、车牌信息等的车外视频、图像数据</strong>；</li>
+<li>涉及个人信息主体<strong>超过 10 万人</strong>的个人信息。</li>
+</ul>
+<p>对应的硬动作：</p>
+<table>
+<thead>
+<tr>
+<th>要求</th>
+<th>落地做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认不收集</strong></td>
+<td>默认关闭，逐项授权；采集目的与期限明示</td>
+</tr>
+<tr>
+<td><strong>匿名化/脱敏</strong></td>
+<td>车外人脸、车牌在上传前或落湖前打码，且保留可审计的脱敏日志</td>
+</tr>
+<tr>
+<td><strong>重要数据出境</strong></td>
+<td>走安全评估，不默认跨境；境外训练集群要单独设计数据路径</td>
+</tr>
+<tr>
+<td><strong>精度与范围</strong></td>
+<td>按功能所需的最小精度采集，不"先采了再说"</td>
+</tr>
+<tr>
+<td><strong>测绘相关</strong></td>
+<td>涉地理信息采集需相应资质，高精地图另有审图要求</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这一栏不是法务的事，是架构的事。</strong> 脱敏放在上传前还是落湖后，决定了整条链路的合规成本。</p>
+<hr />
+<h2 id="六-quiz-engine-10-题自测">六、Quiz Engine：10 题自测</h2>
+<p><strong>规则：先答，再看解析。跳过算没答。</strong></p>
+<ol>
+<li>一辆车全量回传不现实，行业主流替代方案是什么？</li>
+<li>相机帧率 30fps，时间戳用软件打点，最可能的后果是什么？</li>
+<li>激光雷达与相机外参发生 0.3° 漂移，最先在什么场景暴露？</li>
+<li>车外视频含路人面部，什么时候必须完成脱敏？</li>
+<li>影子模式能挖到你"不知道自己不知道"的问题吗？</li>
+<li>训练时发现同一段路的数据有两份不同标定版本，问题出在哪一层？</li>
+<li>元数据缺失但文件存在，会造成什么后果？</li>
+<li>采集车方案 vs 量产车影子模式，最大的差别是什么？</li>
+<li>老板问"我们数据够不够"，你的第一句回答应该是什么？</li>
+<li>一句话说清采集系统的三个约束。</li>
+</ol>
+<details>
+<summary>答案与解析</summary>
+
+**1. 触发式上传（影子模式/规则触发）。** 全量回传只在采集车阶段成立。
+**2. 抖动导致跨传感器错位。** 30fps 下 33ms 一帧，软件打点抖动几十毫秒就足以让"同一时刻"变成相邻帧——高速场景直接错位一个车身。（L3）
+**3. 远距离小目标与标线。** 角度误差随距离放大，远处目标的投影偏差最先超阈值。（L3）
+**4. 上传前或至少落湖前。** 放在训练前才做，等于让未脱敏数据在系统里裸奔了一段，审计上讲不清。（L2）
+**5. 不能。** 影子模式只能发现"影子模型与人类不一致"，而人类没接管的地方它没有信号。（L4）
+**6. 元数据/版本层。** 原始层不该被改写，问题在于标定版本没有写进元数据并与数据绑定。（L4）
+**7. 数据变成孤儿：占用存储、无法检索、不敢删。** "孤儿文件比例"是数据湖健康度的核心指标。（L3）
+**8. 数据分布的控制权。** 采集车你决定采什么；量产车是用户和路况决定你采到什么。（L4）
+**9. "看你指哪一类场景，以及我们有没有对应分布的验证集。"** 不谈分布谈数量，是外行话。（L2）
+**10. 合规定边界，同步定质量，成本定规模。**
+
+</details>
+
+<hr />
+<h2 id="七-cheat-sheet-一页速查">七、Cheat Sheet：一页速查</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>采集策略</th>
+<th>明确别做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>算法预研（0→1）</strong></td>
+<td>采集车 + 全量存原始包</td>
+<td>别急着做触发式，先看清数据长什么样</td>
+</tr>
+<tr>
+<td><strong>量产车数据闭环</strong></td>
+<td>影子模式 + 规则触发 + 断点续传</td>
+<td>别全量回传；别只依赖单一触发规则</td>
+</tr>
+<tr>
+<td><strong>路端/车路协同</strong></td>
+<td>与车端统一时基，路侧固定位姿</td>
+<td>别假设路侧时钟准</td>
+</tr>
+<tr>
+<td><strong>跨境/多区域训练</strong></td>
+<td>先做数据分类分级，再设计路径</td>
+<td>别默认"数据上云再说"</td>
+</tr>
+<tr>
+<td><strong>存量数据治理</strong></td>
+<td>先补元数据，再谈清洗</td>
+<td>别在缺元数据时做"大清洗"，会删掉证据</td>
+</tr>
+</tbody>
+</table>
+<p><strong>三条红线：</strong></p>
+<ol>
+<li><strong>同步与标定没有可观测指标，就等于没做。</strong></li>
+<li><strong>原始层永不改写</strong>，只追加 + 版本。</li>
+<li><strong>脱敏的位置决定合规成本</strong>，越靠前越贵但越安全。</li>
+</ol>
+<hr />
+<h2 id="八-feynman-loop-讲给不懂的人听">八、Feynman Loop：讲给不懂的人听</h2>
+<p><strong>任务：90 秒，不用"闭环""长尾""多模态"这些词，讲清"采集难在哪"。</strong></p>
+<p>参考版本：</p>
+<blockquote>
+<p>采数据像给一座城市拍照。
+第一，你不能什么都拍——有些地方不许拍，有些人脸不能留，这是规矩。
+第二，你拍十张照片，得知道它们是不是同一秒拍的、相机有没有歪。对不上，十张不如一张。
+第三，你不可能把整座城市都拍下来存着，所以要决定"哪些值得拍"。
+<strong>难点从来不是相机，是"拍什么、对得上、存得起"。</strong></p>
+</blockquote>
+<p><strong>卡点检测</strong>：如果你讲的时候必须先解释"什么是影子模式"，说明你还在 L1，回去重看 5.4。</p>
+<hr />
+<h2 id="九-边界-这份材料什么时候不适用">九、边界：这份材料什么时候不适用</h2>
+<ul>
+<li><strong>数据量口径不可直接引用</strong>：不同级别（L2/L4）、不同传感器配置的车，单日数据量差一到两个数量级。本文没给具体 TB 数，因为公开口径互相矛盾，<strong>任何具体数字都要按自己车的配置重算</strong>。</li>
+<li><strong>法规只覆盖中国境内</strong>：欧盟 GDPR、美国各州规则不同，"重要数据"这个概念不通用。</li>
+<li><strong>纯视觉端到端路线</strong>：如果目标是端到端大模型，采集重点会从"标注质量"转向"数据规模与多样性"，本文的标注部分权重需要下调。</li>
+<li><strong>时效</strong>：法规与标准仍在演进，涉及具体项目时以最新原文为准。</li>
+</ul>
+<p><strong>判断标准：读完这份材料，你能对一套采集方案说出"它最可能先崩在哪"，并能给出验证方法。</strong>
+<strong>说不出，就回去做 D 块——找三个真实翻车案例。</strong></p>
+</div></main>
+<footer><div class="wrap">Learning Notes · 学一门手艺，不是读完一本书 · 材料由学习系统生成，请以原始文献为准</div></footer>
+</body>
+</html>
