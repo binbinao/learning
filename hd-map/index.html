@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>高清地图：它卖的不是精度，是“提前知道” · Learning Notes</title>
+<meta name="description" content="用一根轴判断哪些信息该进图、哪些必须现场感知，以及合规怎么决定架构。">
+<style>
+:root{
+  --paper:#fcfbf8; --ink:#191919; --muted:#77746d; --rule:#e4e0d8;
+  --accent:#9c3222; --wash:#f7f2ec;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.8;
+  font-feature-settings:"palt" 1;
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 26px}
+header.top{border-bottom:1px solid var(--rule)}
+header.top .wrap{display:flex;align-items:baseline;justify-content:space-between;padding:20px 26px}
+header.top a{color:var(--ink);text-decoration:none;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+header.top .meta{color:var(--muted);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase}
+main{padding:42px 0 84px}
+
+.kicker{font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:14px}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.3}
+h1{font-size:clamp(1.62rem,3.4vw,2.18rem);margin:0 0 .5em;letter-spacing:-.012em;text-wrap:balance;max-width:19em}
+h2{font-size:1.36rem;margin:3.1em 0 .75em;letter-spacing:-.005em;text-wrap:balance}
+h2::before{content:"";display:block;width:26px;height:2px;background:var(--accent);margin-bottom:.62em}
+h3{font-size:1.04rem;margin:2em 0 .45em;font-family:var(--sans);font-weight:650;letter-spacing:.01em}
+p{margin:0 0 1.1em}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(156,50,34,.25)}
+a:hover{border-bottom-color:var(--accent)}
+ul,ol{padding-left:1.3em;margin:0 0 1.2em}
+li{margin:.3em 0}
+strong{font-weight:650}
+blockquote{
+  margin:2em 0;padding:0 0 0 22px;border-left:2px solid var(--accent);
+  font-family:var(--serif);font-size:1.02rem;color:#3d3630;line-height:1.75
+}
+blockquote p:last-child{margin-bottom:0}
+
+table{border-collapse:collapse;width:100%;margin:1.6em 0 .6em;font-size:.88rem;line-height:1.6}
+th{text-align:left;font-weight:650;font-size:.78rem;letter-spacing:.06em;color:var(--muted);
+   border-bottom:1.5px solid var(--ink);padding:.55em .62em;white-space:nowrap}
+td{border-bottom:1px solid var(--rule);padding:.62em .62em;vertical-align:top}
+td:first-child{font-weight:550}
+code{background:var(--wash);padding:.1em .35em;border-radius:2px;font-size:.85em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--wash);padding:1.05em 1.15em;overflow-x:auto;font-size:.82rem;line-height:1.65;
+  border-left:2px solid var(--rule)}
+pre code{background:none;padding:0}
+hr{border:none;border-top:1px solid var(--rule);margin:3em 0}
+img{max-width:100%;height:auto;display:block;margin:2em 0 .6em;border:1px solid var(--rule)}
+figure{margin:2em 0}
+figcaption{font-size:.8rem;color:var(--muted);letter-spacing:.03em}
+
+details{margin:1.2em 0;border-left:2px solid var(--rule);padding:.2em 0 .2em 18px}
+summary{cursor:pointer;font-size:.86rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+summary::marker{color:var(--accent)}
+details p{margin-top:.9em}
+
+.meta-row{display:flex;flex-wrap:wrap;gap:16px;margin:20px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.08em}
+.meta-row span{padding:0}
+.meta-row span:first-child{color:var(--ink)}
+
+.toc{margin:34px 0 0;padding:0}
+.toc>b{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
+.toc ol{list-style:none;padding:0;margin:0;column-count:2;column-gap:38px}
+.toc li{margin:0;break-inside:avoid}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:4px 0;color:var(--ink);border-bottom:none;font-size:.88rem}
+.toc a:hover{color:var(--accent)}
+.toc .n{color:var(--accent);font-size:.72rem;font-variant-numeric:tabular-nums;letter-spacing:.1em;min-width:17px}
+
+.card{display:block;padding:30px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;border-left:none}
+.card:hover h3{color:var(--accent)}
+.card .k{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.card h3{margin:0 0 .4em;font-size:1.22rem;font-family:var(--serif);font-weight:600;transition:color .15s}
+.card p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.65}
+.card .tags{margin-top:.7em;font-size:11px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase}
+
+footer{border-top:1px solid var(--rule);padding:28px 0 64px;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.index-lede{font-family:var(--serif);font-size:1.14rem;line-height:1.7;color:#4a453e;margin:0 0 44px;max-width:34em}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 20px}
+  header.top .wrap{padding:16px 20px}
+  main{padding:38px 0 70px}
+  .toc ol{column-count:1}
+  table{font-size:.8rem}
+  th,td{padding:.5em .38em}
+  th{white-space:normal}
+}
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  header.top,.toc,footer{display:none}
+  h2{page-break-after:avoid}
+  table,details{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a href="/learning/">Learning Notes</a>
+  <span class="meta">2026-11-19</span>
+</div></header>
+<main><div class="wrap">
+<div class="kicker">Learning Note · 学习材料</div><h1>高清地图：它卖的不是精度，是“提前知道”</h1><div class="meta-row"><span>自动驾驶</span><span>高精地图</span><span>合规</span><span>20 小时</span><span>入门到能判断</span></div><nav class="toc"><b>Contents</b><ol><li><a href="#一-learning-ladder-四级台阶"><span class="n">01</span>一、Learning Ladder：四级台阶</a></li><li><a href="#二-20-hour-plan-怎么分这-20-小时"><span class="n">02</span>二、20 Hour Plan：怎么分这 20 小时</a></li><li><a href="#三-best-resources-只用三份"><span class="n">03</span>三、Best Resources：只用三份</a></li><li><a href="#四-learning-map-四层模型-一条生产链"><span class="n">04</span>四、Learning Map：四层模型 × 一条生产链</a></li><li><a href="#五-四个关键点"><span class="n">05</span>五、四个关键点</a></li><li><a href="#六-quiz-engine-10-题自测"><span class="n">06</span>六、Quiz Engine：10 题自测</a></li><li><a href="#七-cheat-sheet-一页速查"><span class="n">07</span>七、Cheat Sheet：一页速查</a></li><li><a href="#八-feynman-loop-讲给不懂的人听"><span class="n">08</span>八、Feynman Loop：讲给不懂的人听</a></li><li><a href="#九-边界-这份材料什么时候不适用"><span class="n">09</span>九、边界：这份材料什么时候不适用</a></li></ol></nav>
+<blockquote>
+<p>这份材料的唯一目标是：<strong>给你一个要素清单，你能判断“这条信息该不该进图”，并说清理由。</strong></p>
+</blockquote>
+<hr />
+<h2 id="一-learning-ladder-四级台阶">一、Learning Ladder：四级台阶</h2>
+<table>
+<thead>
+<tr>
+<th>级</th>
+<th>状态</th>
+<th>检验方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 能说清</strong></td>
+<td>说得出高精地图的四层数据模型，和它和导航地图的差别</td>
+<td>不看资料，四层各举一例</td>
+</tr>
+<tr>
+<td><strong>L2 能选</strong></td>
+<td>给定场景（高速 NOA / 城市 NOA / 泊车），选得出地图策略</td>
+<td>三个场景，两个选对</td>
+</tr>
+<tr>
+<td><strong>L3 能算</strong></td>
+<td>算得出一座城市建图的采集工时、标注工时、更新周期</td>
+<td>一张成本量级表</td>
+</tr>
+<tr>
+<td><strong>L4 能判断</strong></td>
+<td>指得出“这个要素不该进图”或“必须进图”，并给验证方法</td>
+<td>十个要素，判对八个</td>
+</tr>
+</tbody>
+</table>
+<p><strong>多数人停在 L1</strong>：能说出“高精地图有车道线、有曲率”，但说不出<strong>为什么曲率该进图、施工信息不该进图</strong>。</p>
+<hr />
+<h2 id="二-20-hour-plan-怎么分这-20-小时">二、20 Hour Plan：怎么分这 20 小时</h2>
+<table>
+<thead>
+<tr>
+<th>块</th>
+<th>时长</th>
+<th>干什么</th>
+<th>产出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A 概念</strong></td>
+<td>4h</td>
+<td>四层模型 + 三种路线（重图/轻图/无图）</td>
+<td>一张“要素该不该进图”的判断表</td>
+</tr>
+<tr>
+<td><strong>B 读规范</strong></td>
+<td>6h</td>
+<td>读 Lanelet2 或 OpenDRIVE 的对象定义</td>
+<td>一张“规范里到底定义了什么”的清单</td>
+</tr>
+<tr>
+<td><strong>C 算账</strong></td>
+<td>4h</td>
+<td>一座城市建图 + 一年更新的成本量级</td>
+<td>一张能开会的成本表</td>
+</tr>
+<tr>
+<td><strong>D 合规</strong></td>
+<td>4h</td>
+<td>读 139 号文原文，推演一条合规数据链</td>
+<td>一张“谁能碰数据”的责任图</td>
+</tr>
+<tr>
+<td><strong>E 复盘</strong></td>
+<td>2h</td>
+<td>费曼复述 + 自测</td>
+<td>90 秒录音 + 自测得分</td>
+</tr>
+</tbody>
+</table>
+<p><strong>D 块不能跳。</strong> 在中国做地图，合规不是约束条件，是<strong>方案本身</strong>——它决定谁能采、谁能存、谁能发。</p>
+<hr />
+<h2 id="三-best-resources-只用三份">三、Best Resources：只用三份</h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>用什么</th>
+<th>为什么是它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>规范</strong></td>
+<td>Lanelet2 文档（或 OpenDRIVE 1.8 规范）</td>
+<td>看真实的对象模型：lanelet、regulatory element、relation 到底怎么定义。比任何综述具体</td>
+</tr>
+<tr>
+<td><strong>法规原文</strong></td>
+<td>《自然资源部关于加强智能网联汽车有关测绘地理信息安全管理的通知》（自然资发〔2024〕139 号）</td>
+<td>十条，两千多字，<strong>决定了整条数据链的合法形状</strong></td>
+</tr>
+<tr>
+<td><strong>综述</strong></td>
+<td>《高精地图相关标准及数据模型的研究》（测绘类期刊）</td>
+<td>把 NDS / OpenDRIVE / Lanelet2 的差异讲清楚，省去自己比对三份规范</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不要读第四份。</strong> 这个领域的文章八成在讲“我们家的方案”，读多了只会记住产品名。</p>
+<hr />
+<h2 id="四-learning-map-四层模型-一条生产链">四、Learning Map：四层模型 × 一条生产链</h2>
+<p><img alt="高精地图：四层模型与生产链路" src="/learning/assets/hd-map.png" /></p>
+<p><em>节点与边由 graphify 从 <code>hdmap_chain.py</code> 解析；布局按架构语义重排。</em></p>
+<p><strong>判断轴只有一根：这条信息，是“提前知道”便宜，还是“现场感知”便宜？</strong></p>
+<table>
+<thead>
+<tr>
+<th>四层</th>
+<th>装什么</th>
+<th>典型的层内问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>几何层</strong></td>
+<td>车道线、路沿、停止线、路口的空间坐标</td>
+<td>绝对精度 vs 相对精度，不是一个指标</td>
+</tr>
+<tr>
+<td><strong>语义层</strong></td>
+<td>车道类型、限速、红绿灯位置、标志牌含义</td>
+<td>语义错了比没有更危险</td>
+</tr>
+<tr>
+<td><strong>拓扑层</strong></td>
+<td>车道之间怎么连、路口怎么转、哪条能变道</td>
+<td><strong>这一层才是高精地图的真正价值</strong></td>
+</tr>
+<tr>
+<td><strong>属性层</strong></td>
+<td>曲率、坡度、限高、路面材质</td>
+<td>决定规划能不能提前减速</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话：几何是皮，拓扑是骨，语义是判断，属性是预判。</strong></p>
+<hr />
+<h2 id="五-四个关键点">五、四个关键点</h2>
+<h3>5.1 精度：两个数字，别混着说</h3>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+<th>谁在意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>绝对精度</strong></td>
+<td>要素相对地球坐标的误差</td>
+<td>测绘资质、审图、跨图拼接</td>
+</tr>
+<tr>
+<td><strong>相对精度</strong></td>
+<td>要素之间的相互位置误差</td>
+<td>感知融合、定位匹配、规划</td>
+</tr>
+</tbody>
+</table>
+<p><strong>工程上真正用的是相对精度。</strong> 绝对坐标在中国还要经过国家认定的保密处理技术处理，<strong>与真实地理坐标存在系统性偏移</strong>——这不是误差，是规则（139 号文第三条）。</p>
+<p><strong>所以“我们的图绝对精度 10 厘米”这句话，在合规语境里根本不能这么说。</strong></p>
+<h3>5.2 鲜度：地图最贵的是“旧”</h3>
+<ul>
+<li>采集一次是资本开支，<strong>更新是运营开支，而且永不停止</strong>。</li>
+<li>鲜度不是“多久更新一次”，是<strong>“变化发生后多久被发现”</strong>。</li>
+<li>三个可观测指标：<strong>变更发现时延、变更上线时延、错误要素存活时间</strong>。</li>
+</ul>
+<p><strong>一张 98% 准确但三个月没更新的图，在施工路段比没有图更危险。</strong></p>
+<h3>5.3 覆盖：先问“哪一段”，再问“多少公里”</h3>
+<p>覆盖有三个口径，混用就会吵架：</p>
+<table>
+<thead>
+<tr>
+<th>口径</th>
+<th>含义</th>
+<th>适合回答</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>里程覆盖</strong></td>
+<td>建了多少公里</td>
+<td>宣传口径</td>
+</tr>
+<tr>
+<td><strong>可用覆盖</strong></td>
+<td>其中能支撑目标功能的里程</td>
+<td>工程口径</td>
+</tr>
+<tr>
+<td><strong>场景覆盖</strong></td>
+<td>关键场景（路口/匝道/隧道）覆盖比例</td>
+<td>安全口径</td>
+</tr>
+</tbody>
+</table>
+<p><strong>发布会用第一个，评审要用第二个，出事时看第三个。</strong></p>
+<h3>5.4 合规：它决定架构，不是限制架构</h3>
+<p>按 139 号文，几个必须记住的硬约束（原文要点）：</p>
+<table>
+<thead>
+<tr>
+<th>条款</th>
+<th>要求</th>
+<th>架构含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一条</td>
+<td>采集空间坐标、实景影像、点云及属性（含道路拓扑）<strong>属于测绘活动</strong></td>
+<td>车端采数据这件事本身受测绘法管</td>
+</tr>
+<tr>
+<td>第二条</td>
+<td>高精地图属<strong>导航电子地图</strong>；回传数据的收集/存储/传输/处理与制图，须由<strong>具导航电子地图制作资质的单位</strong>承担</td>
+<td>车企不能自己闭环，必须挂资质方</td>
+</tr>
+<tr>
+<td>第三条</td>
+<td>未经国家认定的保密处理技术处理的数据，<strong>密级不低于处理前</strong></td>
+<td>脱敏不是“打个码”，要走认定技术</td>
+</tr>
+<tr>
+<td>第四条</td>
+<td>地图<strong>通过审核才能提供使用</strong>，新增内容须安全审校并备案</td>
+<td>更新链路里必须留审校环节与时间预算</td>
+</tr>
+<tr>
+<td>第五条</td>
+<td>地理信息数据<strong>必须境内存储</strong>，直传资质单位，其他单位不得接触；出境须审批/审核+安全评估</td>
+<td>决定了你的云、你的跨境训练集群怎么摆</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这四条加起来，等于说：在中国，地图不是软件产品，是受监管的基础设施。</strong></p>
+<hr />
+<h2 id="六-quiz-engine-10-题自测">六、Quiz Engine：10 题自测</h2>
+<p><strong>规则：先答，再看解析。</strong></p>
+<ol>
+<li>高精地图和导航电子地图是什么关系？</li>
+<li>客户说“我们图精度 10 厘米”，你第一句该问什么？</li>
+<li>施工路段的临时改道，该不该进高精地图？</li>
+<li>高精地图真正的价值在哪一层？</li>
+<li>车企能不能自己采集、自己建图、自己用？</li>
+<li>“覆盖 30 万公里”这个数字，最可能是什么口径？</li>
+<li>相对精度和绝对精度，哪个决定定位匹配效果？</li>
+<li>地图更新最该监控的三个指标是什么？</li>
+<li>无图方案能完全替代高精地图吗？</li>
+<li>一句话说清高精地图的本质。</li>
+</ol>
+<details>
+<summary>答案与解析</summary>
+
+**1. 从属关系。** 高精地图是导航电子地图的一种（139 号文第二条把基础地图、ADAS 地图、高精地图、自动驾驶地图都归入导航电子地图）。（L1）
+**2. “绝对还是相对？”** 两个指标差一个量级，混着说等于没说完。（L3）
+**3. 不该进“图”，该进“事件层”。** 变化快的信息进图，等于给自己制造永久的维护债。施工应走临时事件/众包实时层。（L4）
+**4. 拓扑层。** 几何和语义感知能补，**车道连接关系与路口转向规则，现场很难可靠推出来**。（L4）
+**5. 不能。** 采集属测绘活动，数据要直传具资质单位，其他单位不得接触。（L2）
+**6. 里程覆盖（宣传口径）。** 可用覆盖要打折，场景覆盖才是安全口径。（L3）
+**7. 相对精度。** 定位匹配比的是“我相对周围要素在哪”，不是“我在地球上哪”。（L3）
+**8. 变更发现时延、变更上线时延、错误要素存活时间。** 不是“更新频率”。（L4）
+**9. 不能，但能大幅降低依赖。** 无图解决的是“感知够不够”，解决不了“拓扑和规则从哪来”；隧道、遮挡、复杂路口仍是图的优势区。（L4）
+**10. 它是把“现场猜”换成“提前查”的一笔账。** 划不划算，取决于这条信息变化多快、感知多难。（L2）
+
+</details>
+
+<hr />
+<h2 id="七-cheat-sheet-一页速查">七、Cheat Sheet：一页速查</h2>
+<table>
+<thead>
+<tr>
+<th>要素</th>
+<th>进图？</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>车道线几何、路沿</td>
+<td>进</td>
+<td>静态、变化慢、感知在遮挡时不可靠</td>
+</tr>
+<tr>
+<td>车道拓扑、路口转向规则</td>
+<td><strong>必进</strong></td>
+<td>感知几乎推不出来，规划离不开</td>
+</tr>
+<tr>
+<td>停止线、红绿灯位置</td>
+<td>进</td>
+<td>静态、语义明确、对安全关键</td>
+</tr>
+<tr>
+<td>坡度、曲率、限高</td>
+<td>进</td>
+<td>决定提前减速，感知滞后</td>
+</tr>
+<tr>
+<td>施工、临时管制</td>
+<td><strong>不进图，进事件层</strong></td>
+<td>变化以小时计，进图=维护债</td>
+</tr>
+<tr>
+<td>停车位占用、充电桩状态</td>
+<td>不进图，进服务层</td>
+<td>动态、商业属性</td>
+</tr>
+<tr>
+<td>车辆、行人、天气</td>
+<td>不进图</td>
+<td>实时感知的领域</td>
+</tr>
+</tbody>
+</table>
+<p><strong>三种路线的适用边界：</strong></p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>适合</th>
+<th>明确别用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>重图</strong></td>
+<td>高速/城市 NOA 早期、封闭园区、矿区港口</td>
+<td>变化极快的城中村、快速施工区</td>
+</tr>
+<tr>
+<td><strong>轻图</strong></td>
+<td>城市 NOA 规模化、成本敏感车型</td>
+<td>需要厘米级先验的泊车/接管场景</td>
+</tr>
+<tr>
+<td><strong>无图</strong></td>
+<td>泛化到新城市、快速铺开</td>
+<td>隧道、强遮挡路口、拓扑复杂立交</td>
+</tr>
+</tbody>
+</table>
+<p><strong>三条红线：</strong></p>
+<ol>
+<li><strong>没有资质方参与的数据链路，不能上线。</strong></li>
+<li><strong>变化快于更新周期的要素，不要进图。</strong></li>
+<li><strong>谈精度必须先说绝对还是相对。</strong></li>
+</ol>
+<hr />
+<h2 id="八-feynman-loop-讲给不懂的人听">八、Feynman Loop：讲给不懂的人听</h2>
+<p><strong>任务：90 秒，不说“拓扑”“先验”“众包”，讲清高精地图为什么还有用。</strong></p>
+<p>参考版本：</p>
+<blockquote>
+<p>开车进一个陌生的大路口，你不知道该排哪条队、能不能左转——只能现场看。
+高精地图做的事，就是提前把“哪条道能左转、哪条道只能直行”写下来，让你到路口之前就知道。
+所以它不是“更清楚的照片”，是<strong>提前知道的答案</strong>。
+什么时候不值得？当这条路天天变——你写下来的答案明天就错了，还不如现场看。</p>
+</blockquote>
+<p><strong>卡点检测</strong>：如果你讲的时候必须解释“车道拓扑”，说明还在 L1，回去重看第四节的表。</p>
+<hr />
+<h2 id="九-边界-这份材料什么时候不适用">九、边界：这份材料什么时候不适用</h2>
+<ul>
+<li><strong>不含具体精度承诺</strong>：不同厂商、不同要素的精度差异很大，公开口径互不可比。<strong>任何“厘米级”都要问清是哪个要素、绝对还是相对。</strong></li>
+<li><strong>只覆盖中国境内合规</strong>：欧盟、美国各州规则不同，“导航电子地图资质”这个概念不通用。</li>
+<li><strong>时效</strong>：139 号文发布于 2024-07，2025–2026 年多地（上海、南京等）在出实施细则，高精度地图应用试点仍在推进中；涉及具体项目以最新原文为准。</li>
+<li><strong>不含建图算法细节</strong>：SLAM、点云配准、矢量化模型是另一门课，20 小时不够。</li>
+</ul>
+<p><strong>判断标准：读完这份材料，你能对一个要素说出“该不该进图”，并给出“变化速度 + 感知难度”两条理由。</strong>
+<strong>说不出，就回去做 A 块——把那张判断表填满。</strong></p>
+</div></main>
+<footer><div class="wrap">Learning Notes · 学一门手艺，不是读完一本书 · 材料由学习系统生成，请以原始文献为准</div></footer>
+</body>
+</html>
