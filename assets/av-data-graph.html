@@ -471,5 +471,5 @@ network.on('afterDrawing', function(ctx) {
     });
 });
 </script>
-<style>#sidebar{display:none!important}</style><script>try{network.setOptions({nodes:{font:{size:15,strokeWidth:4,strokeColor:'#ffffff'}}});network.fit();}catch(e){}</script></body>
+<style>#sidebar{display:none!important}</style><script>try{nodesDS.update(nodesDS.get().map(function(n){return {id:n.id,font:Object.assign({},n.font,{size:15,strokeWidth:4,strokeColor:'#ffffff'})};}));}catch(e){}try{network.fit();}catch(e){}</script></body>
 </html>
