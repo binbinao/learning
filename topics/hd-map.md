@@ -55,9 +55,7 @@ hours: 20
 
 ## 四、Learning Map：四层模型 × 一条生产链
 
-![高精地图：四层模型与生产链路](/learning/assets/hd-map.png)
-
-*节点与边由 graphify 从 `hdmap_chain.py` 解析；布局按架构语义重排。*
+<iframe src="/learning/assets/hd-map-graph.html" style="width:100%;height:620px;border:1px solid #e4e0d8;background:#fff" loading="lazy" title="高精地图生产链路"></iframe>
 
 **判断轴只有一根：这条信息，是“提前知道”便宜，还是“现场感知”便宜？**
 

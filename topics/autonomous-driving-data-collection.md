@@ -55,16 +55,7 @@ hours: 20
 
 ## 四、Learning Map：一条链路，三个约束
 
-```
- 车端采集 ──→ 回传 ──→ 落湖存储 ──→ 标注/挖掘 ──→ 训练闭环
-   │            │           │             │            │
- 传感器+同步   筛选+断点    元数据+分层   预标注+复核   影子模式回灌
- 标定+时间戳   5G/专线     对象存储+湖仓  版本管理      OTA
-```
-
-![自动驾驶数据采集：五段链路 × 三个约束](/learning/assets/av-data-pipeline.png)
-
-*节点与边由 graphify 从 `pipeline.py` 解析（21 nodes / 37 edges），布局按架构语义重排；[原始交互图](/learning/assets/graphify-graph.html) 可点开看节点关系。*
+<iframe src="/learning/assets/av-data-graph.html" style="width:100%;height:620px;border:1px solid #e4e0d8;background:#fff" loading="lazy" title="数据采集链路"></iframe>
 
 **每个环节都被三个约束同时夹住，这就是判断的依据：**
 

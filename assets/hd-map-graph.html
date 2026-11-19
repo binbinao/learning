@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>graphify - graphify-out/graph.html</title>
-<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"
-        integrity="sha384-Ux6phic9PEHJ38YtrijhkzyJ8yQlH8i/+buBR8s3mAZOJrP1gwyvAcIYl3GWtpX1"
-        crossorigin="anonymous"></script>
+<script src="vis-network.min.js"></script>
 <style>
   :root {
     --bg: #0f0f1a; --panel: #1a1a2e; --border: #2a2a4e; --input-border: #3a3a5e;
@@ -192,7 +190,7 @@ if (themeMQ) {
   if (themeMQ.addEventListener) themeMQ.addEventListener('change', onSchemeChange);
   else if (themeMQ.addListener) themeMQ.addListener(onSchemeChange);
 }
-applyTheme(themePref());
+applyTheme('light');
 
 network.once('stabilizationIterationsDone', () => {
   network.setOptions({ physics: { enabled: false } });
