@@ -56,6 +56,8 @@ hours: 20
 ## 四、Learning Map：四层模型 × 一条生产链
 
 <iframe src="/learning/assets/hd-map-graph.html" style="width:100%;height:620px;border:1px solid #e4e0d8;background:#fff" loading="lazy" title="高精地图生产链路"></iframe>
+*颜色是聚类分组，不是业务分层；点击节点可看它连到哪里。*
+
 
 **判断轴只有一根：这条信息，是“提前知道”便宜，还是“现场感知”便宜？**
 

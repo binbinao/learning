@@ -56,6 +56,8 @@ hours: 20
 ## 四、Learning Map：一条链路，三个约束
 
 <iframe src="/learning/assets/av-data-graph.html" style="width:100%;height:620px;border:1px solid #e4e0d8;background:#fff" loading="lazy" title="数据采集链路"></iframe>
+*颜色是聚类分组，不是业务分层；点击节点可看它连到哪里。*
+
 
 **每个环节都被三个约束同时夹住，这就是判断的依据：**
 
